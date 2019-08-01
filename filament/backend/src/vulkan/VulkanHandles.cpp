@@ -331,6 +331,7 @@ VulkanTexture::VulkanTexture(VulkanContext& context, SamplerType target, uint8_t
     if (error) {
         utils::slog.d << "vkCreateImage: "
             << "result = " << error << ", "
+            << "handle = " << utils::io::hex << textureImage << utils::io::dec << ", "
             << "extent = " << w << "x" << h << "x"<< depth << ", "
             << "mipLevels = " << int(levels) << ", "
             << "format = " << vkformat << utils::io::endl;
