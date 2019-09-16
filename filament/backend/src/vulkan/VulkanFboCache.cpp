@@ -94,7 +94,7 @@ VkRenderPass VulkanFboCache::getRenderPass(RenderPassKey config) noexcept {
     }
     VkAttachmentReference depthAttachmentRef = {};
     if (hasDepth) {
-      depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+      depthAttachmentRef.layout = VK_IMAGE_LAYOUT_GENERAL;
       depthAttachmentRef.attachment = numAttachments++;
     }
     VkSubpassDescription subpass {

@@ -700,7 +700,7 @@ void VulkanDriver::beginRenderPass(Handle<HwRenderTarget> rth,
     VkImageLayout finalDepthLayout;
     if (rt->isOffscreen()) {
         finalColorLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        finalDepthLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+        finalDepthLayout = VK_IMAGE_LAYOUT_GENERAL;
     } else {
         finalColorLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
         finalDepthLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
@@ -1101,11 +1101,8 @@ void VulkanDriver::draw(PipelineState pipelineState, Handle<HwRenderPrimitive> r
                     mCurrentRenderTarget->getColor().image != texture->textureImage,
                     "Attempting to sample color from the current render target");
 
-            // TODO: We might need to use VK_IMAGE_LAYOUT_GENERAL in some scenarios.
-            // For example SSAO samples from the currently-bound depth target.
             VkImageLayout layout = any(texture->usage & TextureUsage::DEPTH_ATTACHMENT) ?
-                        VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL :
-                        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+                        VK_IMAGE_LAYOUT_GENERAL : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
             mBinder.bindSampler(bindingPoint, {
                 .sampler = vksampler,
