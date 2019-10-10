@@ -20,6 +20,7 @@ import android.animation.ValueAnimator
 import android.app.Activity
 import android.opengl.Matrix
 import android.os.Bundle
+import android.support.v4.app.ActivityCompat
 import android.view.Choreographer
 import android.view.Surface
 import android.view.SurfaceView
@@ -34,7 +35,7 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.channels.Channels
 
-class MainActivity : Activity() {
+class MainActivity : Activity(), ActivityCompat.OnRequestPermissionsResultCallback {
     // Make sure to initialize Filament first
     // This loads the JNI library needed by most API calls
     companion object {
@@ -67,6 +68,7 @@ class MainActivity : Activity() {
     private lateinit var materialInstance: MaterialInstance
     private lateinit var vertexBuffer: VertexBuffer
     private lateinit var indexBuffer: IndexBuffer
+    private lateinit var cameraHelper: CameraHelper
 
     // Filament entity representing a renderable object
     @Entity private var renderable = 0
@@ -92,6 +94,9 @@ class MainActivity : Activity() {
         setupFilament()
         setupView()
         setupScene()
+
+        cameraHelper = CameraHelper(this, engine)
+        cameraHelper.openCamera()
     }
 
     private fun setupSurfaceView() {
@@ -328,12 +333,14 @@ class MainActivity : Activity() {
         super.onResume()
         choreographer.postFrameCallback(frameScheduler)
         animator.start()
+        cameraHelper.onResume()
     }
 
     override fun onPause() {
         super.onPause()
         choreographer.removeFrameCallback(frameScheduler)
         animator.cancel()
+        cameraHelper.onPause()
     }
 
     override fun onDestroy() {
@@ -341,7 +348,7 @@ class MainActivity : Activity() {
 
         // Stop the animation and any pending frame
         choreographer.removeFrameCallback(frameScheduler)
-        animator.cancel();
+        animator.cancel()
 
         // Always detach the surface before destroying the engine
         uiHelper.detach()
@@ -423,4 +430,11 @@ class MainActivity : Activity() {
             return dst.apply { rewind() }
         }
     }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+        if (!cameraHelper.onRequestPermissionsResult(requestCode, grantResults)) {
+            this.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        }
+    }
+
 }
