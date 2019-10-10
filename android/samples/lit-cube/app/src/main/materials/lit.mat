@@ -23,6 +23,11 @@ material {
     // is required for lighting, tangent/bitangent for normal mapping
     // and anisotropy)
 
+    // Custom vertex shader outputs
+    variables : [
+        uv
+    ],
+
     // List of parameters exposed by this material
     parameters : [
         // The color must be passed in linear space, not sRGB
@@ -37,8 +42,18 @@ material {
         {
             type : float,
             name : metallic
+        },
+        {
+            type : samplerExternal,
+            name : video
         }
     ],
+}
+
+vertex {
+    void materialVertex(inout MaterialVertexInputs material) {
+        material.uv = 0.5 * (getPosition() + vec4(1));
+    }
 }
 
 fragment {
@@ -47,6 +62,12 @@ fragment {
 
         // Nothing fancy here, we simply copy the parameters
         material.baseColor.rgb = materialParams.baseColor;
+
+        if (variable_uv.y >= 1.0) {
+            material.baseColor.rgb = texture(materialParams_video, variable_uv.xz).rgb;
+            material.baseColor.rg += 0.5 * variable_uv.xz;
+        }
+
         material.roughness = materialParams.roughness;
         material.metallic = materialParams.metallic;
     }

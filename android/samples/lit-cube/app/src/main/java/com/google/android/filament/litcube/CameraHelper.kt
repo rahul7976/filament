@@ -32,9 +32,7 @@ import android.view.Surface
 
 import android.Manifest
 
-import com.google.android.filament.Stream
-import com.google.android.filament.Texture
-import com.google.android.filament.Engine
+import com.google.android.filament.*
 
 import java.lang.Long.signum
 
@@ -43,7 +41,7 @@ import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 import java.util.Comparator
 
-class CameraHelper(val activity: Activity, private val filamentEngine: Engine) {
+class CameraHelper(val activity: Activity, private val filamentEngine: Engine, private val filamentMaterial: MaterialInstance) {
     private lateinit var cameraId: String
     private var captureSession: CameraCaptureSession? = null
     private var cameraDevice: CameraDevice? = null
@@ -141,21 +139,29 @@ class CameraHelper(val activity: Activity, private val filamentEngine: Engine) {
     }
 
     private fun createCaptureSession() {
+        // Create the Android surface that will hold the camera image.
         val surfaceTexture = SurfaceTexture(0)
         surfaceTexture.detachFromGLContext()
         val surface = Surface(surfaceTexture)
 
+        // Create the Filament Stream object that gets bound to the Texture.
         val filamentStream = Stream.Builder()
                 .stream(surfaceTexture)
                 .build(filamentEngine)
 
+        // Create the Filament Texture and Sampler objects.
         val filamentTexture = Texture.Builder()
                 .sampler(Texture.Sampler.SAMPLER_EXTERNAL)
                 .format(Texture.InternalFormat.RGB8)
                 .build(filamentEngine)
 
-        filamentTexture.setExternalStream(filamentEngine, filamentStream)
+        val sampler = TextureSampler(TextureSampler.MinFilter.LINEAR, TextureSampler.MagFilter.LINEAR, TextureSampler.WrapMode.CLAMP_TO_EDGE)
 
+        // Connect the Stream to the Texture and the Texture to the MaterialInstance.
+        filamentTexture.setExternalStream(filamentEngine, filamentStream)
+        filamentMaterial.setParameter("video", filamentTexture, sampler)
+
+        // Start the capture session.
         val captureRequestBuilder = cameraDevice!!.createCaptureRequest(CameraDevice.TEMPLATE_RECORD)
         captureRequestBuilder.addTarget(surface)
 
@@ -169,7 +175,7 @@ class CameraHelper(val activity: Activity, private val filamentEngine: Engine) {
                         captureSession = cameraCaptureSession
                         captureRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE)
                         captureRequest = captureRequestBuilder.build()
-                        captureSession?.setRepeatingRequest(captureRequest, null, backgroundHandler)
+                        captureSession!!.setRepeatingRequest(captureRequest, null, backgroundHandler)
                         Log.i(kLogTag, "Created CaptureRequest.")
                     }
                     override fun onConfigureFailed(session: CameraCaptureSession) {
