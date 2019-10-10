@@ -16,7 +16,6 @@
 
 package com.google.android.filament.litcube
 
-import android.Manifest
 import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
@@ -24,21 +23,24 @@ import android.graphics.ImageFormat
 import android.graphics.SurfaceTexture
 import android.hardware.camera2.*
 import android.media.ImageReader
-import android.support.v4.content.ContextCompat
-import android.util.Log
 import android.os.Handler
 import android.os.HandlerThread
+import android.support.v4.content.ContextCompat
+import android.util.Log
 import android.util.Size
 import android.view.Surface
+
+import android.Manifest
 
 import com.google.android.filament.Stream
 import com.google.android.filament.Texture
 import com.google.android.filament.Engine
 
-import java.util.*
+import java.lang.Long.signum
+
+import java.util.Collections
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
-import java.lang.Long.signum
 import java.util.Comparator
 
 class CameraHelper(val activity: Activity, private val filamentEngine: Engine) {
@@ -49,14 +51,6 @@ class CameraHelper(val activity: Activity, private val filamentEngine: Engine) {
     private var backgroundThread: HandlerThread? = null
     private var backgroundHandler: Handler? = null
     private var imageReader: ImageReader? = null
-
-    private val onImageAvailableListener = ImageReader.OnImageAvailableListener {
-        Log.i(kLogTag, "available")
-        // backgroundHandler?.post(ImageSaver(it.acquireNextImage(), file))
-    }
-
-    private lateinit var captureRequestBuilder: CaptureRequest.Builder
-
     private lateinit var captureRequest: CaptureRequest
 
     private val stateCallback = object : CameraDevice.StateCallback() {
@@ -135,7 +129,6 @@ class CameraHelper(val activity: Activity, private val filamentEngine: Engine) {
                 val map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP) ?: continue
                 val resolution = Collections.max(listOf(*map.getOutputSizes(ImageFormat.JPEG)), CompareSizesByArea())// NOTE: any ImageFormat other than JPEG results in an empty list
                 imageReader = ImageReader.newInstance(resolution.width, resolution.height, ImageFormat.YUV_420_888, kMaxImages)
-                imageReader!!.setOnImageAvailableListener(onImageAvailableListener, backgroundHandler)
                 Log.i(kLogTag, "Created ImageReader: $imageReader ${resolution.width} x ${resolution.height}")
                 return
             }
@@ -161,9 +154,9 @@ class CameraHelper(val activity: Activity, private val filamentEngine: Engine) {
                 .format(Texture.InternalFormat.RGB8)
                 .build(filamentEngine)
 
-        filamentTexture.setExternalStream(filamentEngine, filamentStream);
+        filamentTexture.setExternalStream(filamentEngine, filamentStream)
 
-        captureRequestBuilder = cameraDevice!!.createCaptureRequest(CameraDevice.TEMPLATE_RECORD)
+        val captureRequestBuilder = cameraDevice!!.createCaptureRequest(CameraDevice.TEMPLATE_RECORD)
         captureRequestBuilder.addTarget(surface)
 
         //val surfaces = listOf(surface, imageReader?.surface)
@@ -174,9 +167,9 @@ class CameraHelper(val activity: Activity, private val filamentEngine: Engine) {
                     override fun onConfigured(cameraCaptureSession: CameraCaptureSession) {
                         if (cameraDevice == null) return
                         captureSession = cameraCaptureSession
-                        captureRequestBuilder .set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE)
+                        captureRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE)
                         captureRequest = captureRequestBuilder.build()
-                        //captureSession?.setRepeatingRequest(captureRequest, captureCallback, backgroundHandler)
+                        captureSession?.setRepeatingRequest(captureRequest, null, backgroundHandler)
                         Log.i(kLogTag, "Created CaptureRequest.")
                     }
                     override fun onConfigureFailed(session: CameraCaptureSession) {

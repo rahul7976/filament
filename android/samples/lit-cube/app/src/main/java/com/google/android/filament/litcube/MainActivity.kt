@@ -418,7 +418,7 @@ class MainActivity : Activity(), ActivityCompat.OnRequestPermissionsResultCallba
         }
     }
 
-    private fun readUncompressedAsset(assetName: String): ByteBuffer {
+    private fun readUncompressedAsset(@Suppress("SameParameterValue") assetName: String): ByteBuffer {
         assets.openFd(assetName).use { fd ->
             val input = fd.createInputStream()
             val dst = ByteBuffer.allocate(fd.length.toInt())
