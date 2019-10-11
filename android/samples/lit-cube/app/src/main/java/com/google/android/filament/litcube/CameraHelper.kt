@@ -31,6 +31,7 @@ import android.util.Size
 import android.view.Surface
 
 import android.Manifest
+import android.graphics.Rect
 
 import com.google.android.filament.*
 
@@ -124,8 +125,15 @@ class CameraHelper(val activity: Activity, private val filamentEngine: Engine, p
                 this.cameraId = cameraId
                 Log.i(kLogTag, "Selected camera: $cameraId")
 
+                val rect = characteristics.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE) as Rect
+                val aspectRatio = rect.width().toFloat() / rect.height()
+                filamentMaterial.setParameter("aspectRatio", aspectRatio)
+
                 val map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP) ?: continue
-                val resolution = Collections.max(listOf(*map.getOutputSizes(ImageFormat.JPEG)), CompareSizesByArea())// NOTE: any ImageFormat other than JPEG results in an empty list
+                val sizes = listOf(*map.getOutputSizes(ImageFormat.JPEG))
+                Log.i(kLogTag, "Available sizes: $sizes")
+
+                val resolution = Collections.max(sizes, CompareSizesByArea())// NOTE: any ImageFormat other than JPEG results in an empty list
                 imageReader = ImageReader.newInstance(resolution.width, resolution.height, ImageFormat.YUV_420_888, kMaxImages)
                 Log.i(kLogTag, "Created ImageReader: $imageReader ${resolution.width} x ${resolution.height}")
                 return

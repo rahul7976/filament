@@ -35,40 +35,35 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.channels.Channels
 
+import kotlin.math.*
+
 class MainActivity : Activity(), ActivityCompat.OnRequestPermissionsResultCallback {
-    // Make sure to initialize Filament first
-    // This loads the JNI library needed by most API calls
     companion object {
         init {
             Filament.init()
         }
     }
 
-    // The View we want to render into
     private lateinit var surfaceView: SurfaceView
-    // UiHelper is provided by Filament to manage SurfaceView and SurfaceTexture
     private lateinit var uiHelper: UiHelper
-    // Choreographer is used to schedule new frames
     private lateinit var choreographer: Choreographer
 
-    // Engine creates and destroys Filament resources
-    // Each engine must be accessed from a single thread of your choosing
-    // Resources cannot be shared across engines
     private lateinit var engine: Engine
-    // A renderer instance is tied to a single surface (SurfaceView, TextureView, etc.)
     private lateinit var renderer: Renderer
-    // A scene holds all the renderable, lights, etc. to be drawn
     private lateinit var scene: Scene
-    // A view defines a viewport, a scene and a camera for rendering
     private lateinit var view: View
-    // Should be pretty obvious :)
+
+    // This helper wraps the Android camera2 API and connects it to a Filament material.
+    private lateinit var cameraHelper: CameraHelper
+
+    // This is the Filament camera, not the phone camera. :)
     private lateinit var camera: Camera
 
+    // Other Filament objects:
     private lateinit var material: Material
     private lateinit var materialInstance: MaterialInstance
     private lateinit var vertexBuffer: VertexBuffer
     private lateinit var indexBuffer: IndexBuffer
-    private lateinit var cameraHelper: CameraHelper
 
     // Filament entity representing a renderable object
     @Entity private var renderable = 0
@@ -80,7 +75,7 @@ class MainActivity : Activity(), ActivityCompat.OnRequestPermissionsResultCallba
     // Performs the rendering and schedules new frames
     private val frameScheduler = FrameCallback()
 
-    private val animator = ValueAnimator.ofFloat(0.0f, 360.0f)
+    private val animator = ValueAnimator.ofFloat(0.0f, 50.0f)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -102,10 +97,6 @@ class MainActivity : Activity(), ActivityCompat.OnRequestPermissionsResultCallba
     private fun setupSurfaceView() {
         uiHelper = UiHelper(UiHelper.ContextErrorPolicy.DONT_CHECK)
         uiHelper.renderCallback = SurfaceCallback()
-
-        // NOTE: To choose a specific rendering resolution, add the following line:
-        // uiHelper.setDesiredSize(1280, 720)
-
         uiHelper.attachTo(surfaceView)
     }
 
@@ -118,18 +109,8 @@ class MainActivity : Activity(), ActivityCompat.OnRequestPermissionsResultCallba
     }
 
     private fun setupView() {
-        // Clear the background to middle-grey
-        // Setting up a clear color is useful for debugging but usually
-        // unnecessary when using a skybox
         view.setClearColor(0.035f, 0.035f, 0.035f, 1.0f)
-
-        // NOTE: Try to disable post-processing (tone-mapping, etc.) to see the difference
-        // view.isPostProcessingEnabled = false
-
-        // Tell the view which camera we want to use
         view.camera = camera
-
-        // Tell the view which scene we want to render
         view.scene = scene
     }
 
@@ -181,7 +162,7 @@ class MainActivity : Activity(), ActivityCompat.OnRequestPermissionsResultCallba
         camera.setExposure(16.0f, 1.0f / 125.0f, 100.0f)
 
         // Move the camera back to see the object
-        camera.lookAt(0.0, 3.0, 4.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0)
+        camera.lookAt(0.0, 0.0, 6.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0)
 
         startAnimation()
     }
@@ -193,16 +174,8 @@ class MainActivity : Activity(), ActivityCompat.OnRequestPermissionsResultCallba
     }
 
     private fun setupMaterial() {
-        // Create an instance of the material to set different parameters on it
         materialInstance = material.createInstance()
-        // Specify that our color is in sRGB so the conversion to linear
-        // is done automatically for us. If you already have a linear color
-        // you can pass it directly, or use Colors.RgbType.LINEAR
         materialInstance.setParameter("baseColor", Colors.RgbType.SRGB, 1.0f, 0.85f, 0.57f)
-        // The default value is always 0, but it doesn't hurt to be clear about our intentions
-        // Here we are defining a dielectric material
-        materialInstance.setParameter("metallic", 0.0f)
-        // We increase the roughness to spread the specular highlights
         materialInstance.setParameter("roughness", 0.3f)
     }
 
@@ -246,13 +219,13 @@ class MainActivity : Activity(), ActivityCompat.OnRequestPermissionsResultCallba
                 // It is important to respect the native byte order
                 .order(ByteOrder.nativeOrder())
                 // Face -Z
-                .put(Vertex(-1.0f, -1.0f, -1.0f, tfNZ))
-                .put(Vertex(-1.0f,  1.0f, -1.0f, tfNZ))
-                .put(Vertex( 1.0f,  1.0f, -1.0f, tfNZ))
-                .put(Vertex( 1.0f, -1.0f, -1.0f, tfNZ))
+                .put(Vertex(-1.5f, -1.5f, -1.0f, tfNZ))
+                .put(Vertex(-1.5f,  1.5f, -1.0f, tfNZ))
+                .put(Vertex( 1.5f,  1.5f, -1.0f, tfNZ))
+                .put(Vertex( 1.5f, -1.5f, -1.0f, tfNZ))
                 // Face +X
-                .put(Vertex( 1.0f, -1.0f, -1.0f, tfPX))
-                .put(Vertex( 1.0f,  1.0f, -1.0f, tfPX))
+                .put(Vertex( 1.5f, -1.5f, -1.0f, tfPX))
+                .put(Vertex( 1.5f,  1.5f, -1.0f, tfPX))
                 .put(Vertex( 1.0f,  1.0f,  1.0f, tfPX))
                 .put(Vertex( 1.0f, -1.0f,  1.0f, tfPX))
                 // Face +Z
@@ -263,18 +236,18 @@ class MainActivity : Activity(), ActivityCompat.OnRequestPermissionsResultCallba
                 // Face -X
                 .put(Vertex(-1.0f, -1.0f,  1.0f, tfNX))
                 .put(Vertex(-1.0f,  1.0f,  1.0f, tfNX))
-                .put(Vertex(-1.0f,  1.0f, -1.0f, tfNX))
-                .put(Vertex(-1.0f, -1.0f, -1.0f, tfNX))
+                .put(Vertex(-1.5f,  1.5f, -1.0f, tfNX))
+                .put(Vertex(-1.5f, -1.5f, -1.0f, tfNX))
                 // Face -Y
                 .put(Vertex(-1.0f, -1.0f,  1.0f, tfNY))
-                .put(Vertex(-1.0f, -1.0f, -1.0f, tfNY))
-                .put(Vertex( 1.0f, -1.0f, -1.0f, tfNY))
+                .put(Vertex(-1.5f, -1.5f, -1.0f, tfNY))
+                .put(Vertex( 1.5f, -1.5f, -1.0f, tfNY))
                 .put(Vertex( 1.0f, -1.0f,  1.0f, tfNY))
                 // Face +Y
-                .put(Vertex(-1.0f,  1.0f, -1.0f, tfPY))
+                .put(Vertex(-1.5f,  1.5f, -1.0f, tfPY))
                 .put(Vertex(-1.0f,  1.0f,  1.0f, tfPY))
                 .put(Vertex( 1.0f,  1.0f,  1.0f, tfPY))
-                .put(Vertex( 1.0f,  1.0f, -1.0f, tfPY))
+                .put(Vertex( 1.5f,  1.5f, -1.0f, tfPY))
                 // Make sure the cursor is pointing in the right place in the byte buffer
                 .flip()
 
@@ -320,8 +293,10 @@ class MainActivity : Activity(), ActivityCompat.OnRequestPermissionsResultCallba
         animator.repeatCount = ValueAnimator.INFINITE
         animator.addUpdateListener(object : ValueAnimator.AnimatorUpdateListener {
             val transformMatrix = FloatArray(16)
-            override fun onAnimationUpdate(a: ValueAnimator) {
-                Matrix.setRotateM(transformMatrix, 0, a.animatedValue as Float, 0.0f, 1.0f, 0.0f)
+            override fun onAnimationUpdate(animator: ValueAnimator) {
+                val t = animator.animatedValue as Float
+                val radians = sin(t) * 3.0f * PI.toFloat()
+                Matrix.setRotateM(transformMatrix, 0, radians, 0.0f, 1.0f, 0.0f)
                 val tcm = engine.transformManager
                 tcm.setTransform(tcm.getInstance(renderable), transformMatrix)
             }

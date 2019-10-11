@@ -41,7 +41,7 @@ material {
         },
         {
             type : float,
-            name : metallic
+            name : aspectRatio
         },
         {
             type : samplerExternal,
@@ -60,15 +60,15 @@ fragment {
     void material(inout MaterialInputs material) {
         prepareMaterial(material);
 
-        // Nothing fancy here, we simply copy the parameters
         material.baseColor.rgb = materialParams.baseColor;
 
-        if (variable_uv.y >= 1.0) {
-            material.baseColor.rgb = texture(materialParams_video, variable_uv.xz).rgb;
-            material.baseColor.rg += 0.5 * variable_uv.xz;
+        if (variable_uv.z >= 1.0) {
+            vec2 uv = vec2(1.0 - variable_uv.y, 1.0 - variable_uv.x);
+            uv.x /= materialParams.aspectRatio;
+            material.baseColor.rgb = texture(materialParams_video, uv).rgb;
         }
 
         material.roughness = materialParams.roughness;
-        material.metallic = materialParams.metallic;
+        material.metallic = 0.0;
     }
 }
