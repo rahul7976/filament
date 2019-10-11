@@ -45,7 +45,7 @@ material {
         },
         {
             type : samplerExternal,
-            name : video
+            name : videoTexture
         }
     ],
 }
@@ -59,16 +59,20 @@ vertex {
 fragment {
     void material(inout MaterialInputs material) {
         prepareMaterial(material);
-
-        material.baseColor.rgb = materialParams.baseColor;
-
-        if (variable_uv.z >= 1.0) {
-            vec2 uv = vec2(1.0 - variable_uv.y, 1.0 - variable_uv.x);
-            uv.x /= materialParams.aspectRatio;
-            material.baseColor.rgb = texture(materialParams_video, uv).rgb;
-        }
-
         material.roughness = materialParams.roughness;
         material.metallic = 0.0;
+        if (variable_uv.z >= 1.0) {
+            float aspect = materialParams.aspectRatio;
+            vec2 uv;
+            if (aspect > 0.0) {
+                uv = (1.0 - variable_uv.yx) / aspect;
+            } else {
+                uv = (1.0 - variable_uv.xy) / -aspect;
+                uv.y = 1.0 - uv.y;
+            }
+            material.baseColor.rgb = texture(materialParams_videoTexture, uv).rgb;
+        } else {
+            material.baseColor.rgb = materialParams.baseColor;
+        }
     }
 }

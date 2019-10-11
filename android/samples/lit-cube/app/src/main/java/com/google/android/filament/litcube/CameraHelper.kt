@@ -31,6 +31,7 @@ import android.util.Size
 import android.view.Surface
 
 import android.Manifest
+import android.content.res.Configuration
 import android.graphics.Rect
 
 import com.google.android.filament.*
@@ -42,6 +43,9 @@ import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 import java.util.Comparator
 
+/**
+ * Toy class that handles all Camera2 interaction and sets the "aspectRatio" and "videoTexture" parameters on the given Filament material.
+ */
 class CameraHelper(val activity: Activity, private val filamentEngine: Engine, private val filamentMaterial: MaterialInstance) {
     private lateinit var cameraId: String
     private var captureSession: CameraCaptureSession? = null
@@ -51,6 +55,7 @@ class CameraHelper(val activity: Activity, private val filamentEngine: Engine, p
     private var backgroundHandler: Handler? = null
     private var imageReader: ImageReader? = null
     private lateinit var captureRequest: CaptureRequest
+    private var resolution = Size(640, 480)
 
     private val stateCallback = object : CameraDevice.StateCallback() {
 
@@ -125,17 +130,13 @@ class CameraHelper(val activity: Activity, private val filamentEngine: Engine, p
                 this.cameraId = cameraId
                 Log.i(kLogTag, "Selected camera: $cameraId")
 
-                val rect = characteristics.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE) as Rect
-                val aspectRatio = rect.width().toFloat() / rect.height()
-                filamentMaterial.setParameter("aspectRatio", aspectRatio)
-
                 val map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP) ?: continue
-                val sizes = listOf(*map.getOutputSizes(ImageFormat.JPEG))
-                Log.i(kLogTag, "Available sizes: $sizes")
+                resolution = map.getOutputSizes(SurfaceTexture::class.java)[0]
+                Log.i(kLogTag, "Highest resolution: $resolution")
 
-                val resolution = Collections.max(sizes, CompareSizesByArea())// NOTE: any ImageFormat other than JPEG results in an empty list
-                imageReader = ImageReader.newInstance(resolution.width, resolution.height, ImageFormat.YUV_420_888, kMaxImages)
-                Log.i(kLogTag, "Created ImageReader: $imageReader ${resolution.width} x ${resolution.height}")
+                //val resolution = Collections.max(sizes, CompareSizesByArea())// NOTE: any ImageFormat other than JPEG results in an empty list
+                //imageReader = ImageReader.newInstance(resolution.width, resolution.height, ImageFormat.YUV_420_888, kMaxImages)
+                //Log.i(kLogTag, "Created ImageReader: $imageReader ${resolution.width} x ${resolution.height}")
                 return
             }
         } catch (e: CameraAccessException) {
@@ -149,6 +150,7 @@ class CameraHelper(val activity: Activity, private val filamentEngine: Engine, p
     private fun createCaptureSession() {
         // Create the Android surface that will hold the camera image.
         val surfaceTexture = SurfaceTexture(0)
+        surfaceTexture.setDefaultBufferSize(resolution.width, resolution.height)
         surfaceTexture.detachFromGLContext()
         val surface = Surface(surfaceTexture)
 
@@ -165,11 +167,18 @@ class CameraHelper(val activity: Activity, private val filamentEngine: Engine, p
 
         val sampler = TextureSampler(TextureSampler.MinFilter.LINEAR, TextureSampler.MagFilter.LINEAR, TextureSampler.WrapMode.CLAMP_TO_EDGE)
 
-        // Connect the Stream to the Texture and the Texture to the MaterialInstance.
-        filamentTexture.setExternalStream(filamentEngine, filamentStream)
-        filamentMaterial.setParameter("video", filamentTexture, sampler)
+        var aspectRatio = resolution.width.toFloat() / resolution.height.toFloat()
 
-        // Start the capture session.
+        if (activity.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            aspectRatio = -aspectRatio
+        }
+
+            // Connect the Stream to the Texture and the Texture to the MaterialInstance.
+        filamentTexture.setExternalStream(filamentEngine, filamentStream)
+        filamentMaterial.setParameter("videoTexture", filamentTexture, sampler)
+        filamentMaterial.setParameter("aspectRatio", aspectRatio)
+
+        // Start the capture session. You could also use TEMPLATE_PREVIEW here.
         val captureRequestBuilder = cameraDevice!!.createCaptureRequest(CameraDevice.TEMPLATE_RECORD)
         captureRequestBuilder.addTarget(surface)
 
