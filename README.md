@@ -7,10 +7,10 @@
 <img alt="Windows" src="build/img/windows.png" width="20px" height="20px" hspace="2px"/>[![Windows Build Status](https://filament-build.storage.googleapis.com/badges/build_status_windows.svg)](https://filament-build.storage.googleapis.com/badges/build_link_windows.html)
 <img alt="Web" src="build/img/web.png" width="20px" height="20px" hspace="2px"/>[![Web Build Status](https://filament-build.storage.googleapis.com/badges/build_status_web.svg)](https://filament-build.storage.googleapis.com/badges/build_link_web.html)
 
-Filament is a real-time physically based rendering engine for Android, iOS, Linux, macOS, Windows,
+The filament is a real-time physically based rendering engine for Android, iOS, Linux, macOS, Windows,
 and WebGL. It is designed to be as small as possible and as efficient as possible on Android.
 
-Filament is currently used in the
+The filament is currently used in the
 [Sceneform](https://developers.google.com/ar/develop/java/sceneform/) library both at runtime on
 Android devices and as the renderer inside the Android Studio plugin.
 
@@ -21,7 +21,7 @@ Android devices and as the renderer inside the Android Studio plugin.
 Make sure you always use tools from the same release as the runtime library. This is particularly
 important for `matc` (material compiler).
 
-If you prefer to live on the edge, you can download a continuous build by clicking one of the build
+If you prefer to live on the edge, you can download a continuous build by clicking one of the builds
 badges above.
 
 ## Documentation
@@ -31,8 +31,7 @@ badges above.
   This document explains the math and reasoning behind most of our decisions. This document is a
   good introduction to PBR for graphics programmers.
 - [Materials](https://google.github.io/filament/Materials.html), the full reference
-  documentation for our material system. This document explains our different material models, how
-  to use the material compiler `matc` and how to write custom materials.
+  documentation for our material system. This document explains our different material models, how to use the material compiler `matc` and how to write custom materials.
 - [Material Properties](https://google.github.io/filament/Material%20Properties.pdf), a reference
   sheet for the standard material model.
 
@@ -65,15 +64,15 @@ Here are a few screenshots of applications that use Filament in production:
 ### APIs
 
 - Native C++ API for Android, iOS, Linux, macOS and Windows
-- Java/JNI API for Android, Linux, macOS and Windows
+- Java/JNI API for Android, Linux, macOS, and Windows
 - JavaScript API
 
 ### Backends
 
-- OpenGL 4.1+ for Linux, macOS and Windows
+- OpenGL 4.1+ for Linux, macOS, and Windows
 - OpenGL ES 3.0+ for Android and iOS
 - Metal for macOS and iOS
-- Vulkan 1.0 for Android, Linux, macOS and iOS (with MoltenVk), and Windows
+- Vulkan 1.0 for Android, Linux, macOS, and iOS (with MoltenVk), and Windows
 - WebGL 2.0 for all platforms
 
 ### Rendering
@@ -83,19 +82,19 @@ Here are a few screenshots of applications that use Filament in production:
 - Lambertian diffuse BRDF
 - HDR/linear lighting
 - Metallic workflow
-- Clear coat
+- Clearcoat
 - Anisotropic lighting
 - Approximated translucent (subsurface) materials
 - Cloth shading
 - Normal mapping & ambient occlusion mapping
 - Image-based lighting
-- Physically-based camera (shutter speed, sensitivity and aperture)
+- Physically-based camera (shutter speed, sensitivity, and aperture)
 - Physical light units
-- Point light, spot light and directional light
+- Point light, spotlight and directional light
 - SSAO
 - ACES-like tone-mapping
 - Temporal dithering
-- FXAA, MSAA and specular anti-aliasing
+- FXAA, MSAA, and specular anti-aliasing
 - Dynamic resolution (on Android and iOS)
 
 ### Future
@@ -112,7 +111,7 @@ Many other features have been either prototyped or planned:
 
 ## Directory structure
 
-This repository not only contains the core Filament engine, but also its supporting libraries
+This repository not only contains the core Filament engine but also its supporting libraries
 and tools.
 
 - `android`:               Android libraries and projects
@@ -176,7 +175,7 @@ To build Filament, you must first install the following tools:
 - clang 7.0 (or more recent)
 - [ninja 1.8](https://github.com/ninja-build/ninja/wiki/Pre-built-Ninja-packages) (or more recent)
 
-To build the Java based components of the project you can optionally install (recommended):
+To build the Java-based components of the project you can optionally install (recommended):
 
 - OpenJDK 1.8 (or more recent)
 
@@ -198,7 +197,7 @@ To build Filament for Android you must also install the following:
 
 Make sure the environment variable `ANDROID_HOME` points to the location of your Android SDK.
 
-By default our build system will attempt to compile the Java bindings. To do so, the environment
+By default, our build system will attempt to compile the Java bindings. To do so, the environment
 variable `JAVA_HOME` should point to the location of your JDK.
 
 When building for WebGL, you'll also need to set `EMSDK`. See [WebAssembly](#webassembly).
@@ -210,7 +209,7 @@ in CLion to obtain a usable project.
 
 ### Easy build
 
-Once the required OS specific dependencies listed below are installed, you can use the script
+Once the required OS-specific dependencies listed below are installed, you can use the script
 located in `build.sh` to build Filament easily on macOS and Linux.
 
 This script can be invoked from anywhere and will produce build artifacts in the `out/` directory
@@ -240,7 +239,7 @@ by executing `build.sh -h`.
 
 ### Disabling Java builds
 
-By default our build system will attempt to compile the Java bindings. If you wish to skip this
+By default, our build system will attempt to compile the Java bindings. If you wish to skip this
 compilation step simply pass the `-j` flag to `build.sh`:
 
 ```
@@ -411,7 +410,7 @@ Create the msBuild project:
 
 Check out the output and make sure Clang for Windows frontend was found. You should see a line
 showing the following output. Note that for Visual Studio 2017 this line may list Microsoft's
-compiler, but the build will still in fact use Clang and you can proceed.
+compiler, but the build will still, in fact, use Clang and you can proceed.
 
 ```
 Clang:C:/Program Files/LLVM/msbuild-bin/cl.exe
@@ -464,8 +463,8 @@ You should then be able to build by invoking Ninja:
 
 - Before shipping a binary, make sure you used Release profile and make sure you have no libc/libc++
   dependencies with [Dependency Walker](http://www.dependencywalker.com).
-- Application Verifier and gflags.exe can be of great help to trackdown heap corruption. Application
-  Verifier is easy to setup with a GUI. For gflags, use: `gflags /p /enable pheap-buggy.exe`.
+- Application Verifier and gflags.exe can be of great help to track down heap corruption. Application
+  Verifier is easy to set up with a GUI. For gflags, use: `gflags /p /enable pheap-buggy.exe`.
 
 #### Running a simple test
 
@@ -480,7 +479,7 @@ To confirm Filament was properly built, run the following command from the build
 Before building Filament for Android, make sure to build Filament for your host. Some of the
 host tools are required to successfully build for Android.
 
-Filament can be built for the following architectures:
+The filament can be built for the following architectures:
 
 - ARM 64-bit (`arm64-v8a`)
 - ARM 32-bit (`armeabi-v7a`)
@@ -614,7 +613,7 @@ binaries should be found in `out/android-release/filament/lib/x86`.
 ### AAR
 
 Before you attempt to build the AAR, make sure you've compiled and installed the native libraries
-as explained in the sections above. You must have the following ABIs built in
+as explained in the sections above. You must have the following ABIs built-in
 `out/android-release/filament/lib/`:
 
 - `arm64-v8a`
@@ -649,7 +648,7 @@ Create a new module in your project and select _Import .JAR or .AAR Package_ whe
 sure to add the newly created module as a dependency to your application.
 
 If you do not wish to include all supported ABIs, make sure to create the appropriate flavors in
-your Gradle build file. For example:
+your Gradle builds file. For example:
 
 ```
 flavorDimensions 'cpuArch'
@@ -728,7 +727,7 @@ Alternatively, if you have node installed you can use the
 [live-server](https://www.npmjs.com/package/live-server) package, which automatically refreshes the
 web page when it detects a change.
 
-Each sample app has its own handwritten html file. Additionally the server folder contains assets
+Each sample app has its handwritten html file. Additionally the server folder contains assets
 such as meshes, textures, and materials.
 
 ## Running the native samples
@@ -754,11 +753,11 @@ cmgen -x ./ibls/ my_ibl.exr
 
 The source environment map can be a PNG (8 or 16 bit), a PSD (16 or 32 bit), an HDR or an OpenEXR
 file. The environment map can be an equirectangular projection, a horizontal cross, a vertical
-cross, or a list of cubemap faces (horizontal or vertical).
+cross, or a list of cube map faces (horizontal or vertical).
 
 `cmgen` will automatically create a directory based on the name of the source environment map. In
 the example above, the final directory will be `./ibls/my_ibl/`. This directory should contain the
-pre-filtered environment map (one file per cubemap face and per mip level), the environment map
+pre-filtered environment map (one file per cube map face and per mip level), the environment map
 texture for the skybox and a text file containing the spherical harmonics for indirect diffuse
 lighting.
 
@@ -831,7 +830,7 @@ For complete examples of Linux, macOS and Windows Filament applications, look at
 in the `samples/` directory. These samples are all based on `samples/app/` which contains the code
 that creates a native window with SDL2 and initializes the Filament engine, renderer and views.
 
-### Java on Linux, macOS and Windows
+### Java on Linux, macOS, and Windows
 
 After building Filament, you can use `filament-java.jar` and its companion `filament-jni` native
 library to use Filament in desktop Java applications.
@@ -854,7 +853,7 @@ You must always first initialize Filament by calling `Filament.init()`.
 Rendering with Filament on Android is similar to rendering from native code (the APIs are largely
 the same across languages). You can render into a `Surface` by passing a `Surface` to the
 `createSwapChain` method. This allows you to render to a `SurfaceTexture`, a `TextureView` or
-a `SurfaceView`. To make things easier we provide an Android specific API called `UiHelper` in the
+a `SurfaceView`. To make things easier we provide an Android-specific API called `UiHelper` in the
 package `com.google.android.filament.android`. All you need to do is set a render callback on the
 helper and attach your `SurfaceView` or `TextureView` to it. You are still responsible for
 creating the swap chain in the `onNativeWindowChanged()` callback.
@@ -877,7 +876,7 @@ $ cd filament/filament
 $ doxygen docs/doxygen/filament.doxygen
 ```
 
-Finally simply open `docs/html/index.html` in your web browser.
+Finally, simply open `docs/html/index.html` in your web browser.
 
 ## Assets
 
@@ -887,7 +886,7 @@ refer to their respective `URL.txt` files to know more about the original author
 
 ## Dependencies
 
-One of our design goals is that Filament itself should have no dependencies or as few dependencies
+One of our design goals is that the Filament itself should have no dependencies or as few dependencies
 as possible. The current external dependencies of the runtime library include:
 
 - STL
